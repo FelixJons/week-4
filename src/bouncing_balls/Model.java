@@ -1,7 +1,5 @@
 package bouncing_balls;
 
-import java.util.Arrays;
-
 /**
  * The physics model.
  * <p>
@@ -35,35 +33,62 @@ class Model {
 
 
     void step(double deltaT) {
-        // TODO this method implements one step of simulation with a step deltaT
+        // If mass is not assigned here it equals to 0
+        balls[0].mass = 1;
+        balls[1].mass = 1;
         for (Ball b : balls) {
             // detect collision with the border
             if (circlesIsIntersecting() && !ballsIsFrozen) {
                 System.out.println("Intersection occurred!");
                 ballsIsFrozen = true;
-
+                // Calculate angle in radians between the x-axis and the line between the balls centres (l)
                 double slopeBetweenBalls = Vector.slopeBetweenTwoVectors(balls[0].position, balls[1].position);
                 double slopeAxisX = 0;
                 double tanBetweenLines = acuteAngleBetweenLines(slopeBetweenBalls, slopeAxisX);
                 double radianAngleBetweenLines = Math.atan(tanBetweenLines);
-                double degreeAngleBetweenLines = Math.toDegrees(radianAngleBetweenLines);
 
+                System.out.println("Radian angle between lines: " + radianAngleBetweenLines);
+
+                // Calculate the clockwise rotation needed to align (l) with the x-axis
                 // Observera att degreeAngleBetweenLines är negativ här i hur vi satt upp bollarna, kanske påverkar?
                 double rotationAngle = 2 * Math.PI + radianAngleBetweenLines;
-                /*
-                System.out.println(radianAngleBetweenLines);
-                System.out.println(rotationAngle);
-                System.out.println(Math.toDegrees(rotationAngle));
-                 */
+                double[][] rotationMatrix = generateRotationMatrixCounterClockwise(rotationAngle);
 
-                double[][] rotationMatrix = generateRotationMatrix(rotationAngle);
-               /*
-                System.out.println(Arrays.deepToString(generateRotationMatrix(0)));
-                System.out.println(Arrays.deepToString(generateRotationMatrix(Math.PI / 2.0)));
-                */
+                System.out.println("Rotation angle for coordinate system: " + rotationAngle);
 
-                // Vector vector0 = Vector.vectorMatrixTransformation(generateRotationMatrix(Math.PI / 2.0), new Vector(1, 0));
-                // System.out.println(vector0);
+                // Calculate the projected vectors in the new coordinate system
+                Vector ballProjectedVelocity0 = Vector.vectorMatrixTransformation(rotationMatrix, balls[0].velocity);
+                Vector ballProjectedVelocity1 = Vector.vectorMatrixTransformation(rotationMatrix, balls[1].velocity);
+
+                System.out.println("Ball0 original initial velocity: " + balls[0].velocity);
+                System.out.println("Ball1 original initial velocity: " + balls[1].velocity);
+
+                System.out.println("Ball1 transformed initial velocity: " + ballProjectedVelocity0);
+                System.out.println("Ball1 transformed initial velocity: " + ballProjectedVelocity1);
+
+                // Calculate the new velocity across the x-axis
+                double initialVelocityX0 = ballProjectedVelocity0.x;
+                double initialVelocityX1 = ballProjectedVelocity1.x;
+                double newVelocityX0 = calculateNewVelocityX(balls[0].mass, initialVelocityX0,
+                        balls[1].mass, initialVelocityX1);
+                double newVelocityX1 = calculateNewVelocityX(balls[1].mass, initialVelocityX1,
+                        balls[0].mass, initialVelocityX0);
+
+                System.out.println("Ball0 x-velocity after collision: " + newVelocityX0);
+                System.out.println("Ball1 x-velocity after collision: " + newVelocityX1);
+
+
+
+                double[][] m1 = generateRotationMatrixClockwise(rotationAngle);
+                Vector ballFinalVelocity0 = Vector.vectorMatrixTransformation(m1, new Vector(newVelocityX0, ballProjectedVelocity0.y));
+                Vector ballFinalVelocity1 = Vector.vectorMatrixTransformation(m1, new Vector(newVelocityX1, ballProjectedVelocity1.y));
+
+                System.out.println("Ball0 velocity vector transformed to original system: " + ballFinalVelocity0);
+                System.out.println("Ball1 velocity vector transformed to original system: " + ballFinalVelocity1);
+
+                // Assign the final velocities
+                balls[0].velocity = ballFinalVelocity0;
+                balls[1].velocity = ballFinalVelocity1;
 
             }
 
@@ -88,6 +113,12 @@ class Model {
         b.position.y += deltaT * b.velocity.y;
     }
 
+    double calculateNewVelocityX(double mass1, double v1, double mass2, double v2) {
+        return ((mass1 - mass2) / (mass1 + mass2)) * v1
+                +
+                ((2 * mass2) / (mass1 + mass2)) * v2;
+    }
+
     boolean circlesIsIntersecting() {
         // Pythagoras
         double distanceBetweenCircles = Math.sqrt(Math.pow(balls[0].position.x - balls[1].position.x, 2) + Math.pow(balls[0].position.y - balls[1].position.y, 2));
@@ -98,11 +129,20 @@ class Model {
         return (slope1 - slope2) / (1 + (slope1 * slope2));
     }
 
-    double[][] generateRotationMatrix(double radianAngle) {
+    double[][] generateRotationMatrixCounterClockwise(double radianAngle) {
         double[][] rotationMatrix = new double[2][2];
         rotationMatrix[0][0] = Math.cos(radianAngle);
         rotationMatrix[0][1] = -Math.sin(radianAngle);
         rotationMatrix[1][0] = Math.sin(radianAngle);
+        rotationMatrix[1][1] = Math.cos(radianAngle);
+        return rotationMatrix;
+    }
+
+    double[][] generateRotationMatrixClockwise(double radianAngle) {
+        double[][] rotationMatrix = new double[2][2];
+        rotationMatrix[0][0] = Math.cos(radianAngle);
+        rotationMatrix[0][1] = Math.sin(radianAngle);
+        rotationMatrix[1][0] = -Math.sin(radianAngle);
         rotationMatrix[1][1] = Math.cos(radianAngle);
         return rotationMatrix;
     }
