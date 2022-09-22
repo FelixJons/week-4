@@ -1,5 +1,7 @@
 package bouncing_balls;
 
+import java.util.Arrays;
+
 /**
  * The physics model.
  * <p>
@@ -46,13 +48,18 @@ class Model {
                 double radianAngleBetweenLines = Math.atan(tanBetweenLines);
                 double degreeAngleBetweenLines = Math.toDegrees(radianAngleBetweenLines);
 
-                // Observera att degreeAngleBetweenLines är negativ här, kanske påverkar?
+                // Observera att degreeAngleBetweenLines är negativ här i hur vi satt upp bollarna, kanske påverkar?
                 double rotationAngle = 2 * Math.PI + radianAngleBetweenLines;
                 /*
                 System.out.println(radianAngleBetweenLines);
                 System.out.println(rotationAngle);
                 System.out.println(Math.toDegrees(rotationAngle));
                  */
+
+                double[][] m = generateRotationMatrix(rotationAngle);
+                System.out.println(Arrays.deepToString(generateRotationMatrix(0)));
+                System.out.println(Arrays.deepToString(generateRotationMatrix(Math.PI / 2.0)));
+
             }
 
             if (b.position.x < b.radius || b.position.x > areaWidth - b.radius) {
@@ -84,6 +91,15 @@ class Model {
 
     double acuteAngleBetweenLines(double slope1, double slope2) {
         return (slope1 - slope2) / (1 + (slope1 * slope2));
+    }
+
+    double[][] generateRotationMatrix(double radianAngle) {
+        double[][] rotationMatrix = new double[2][2];
+        rotationMatrix[0][0] = Math.cos(radianAngle);
+        rotationMatrix[0][1] = -Math.sin(radianAngle);
+        rotationMatrix[1][0] = Math.sin(radianAngle);
+        rotationMatrix[1][1] = Math.cos(radianAngle);
+        return rotationMatrix;
     }
 
 
