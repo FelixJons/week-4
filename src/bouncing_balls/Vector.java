@@ -15,6 +15,12 @@ public class Vector {
         return (v1.x- v2.x) / (v1.y - v2.y);
     }
 
+    public static Vector vectorMatrixTransformation(double[][] transformationMatrix, Vector v) {
+        double x = v.x * transformationMatrix[0][0] + v.x * transformationMatrix[0][1];
+        double y = v.y * transformationMatrix[1][0] + v.y * transformationMatrix[1][1];
+        return new Vector(x,y);
+    }
+
     public static Vector scaleVector(Vector v, double s) {
         return new Vector(v.x * s, v.y * s);
     }
@@ -36,5 +42,13 @@ public class Vector {
     public void scale(double s) {
         x *= s;
         y *= s;
+    }
+
+    @Override
+    public String toString() {
+        return "Vector{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
     }
 }

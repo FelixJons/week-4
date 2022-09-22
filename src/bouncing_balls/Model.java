@@ -56,9 +56,14 @@ class Model {
                 System.out.println(Math.toDegrees(rotationAngle));
                  */
 
-                double[][] m = generateRotationMatrix(rotationAngle);
+                double[][] rotationMatrix = generateRotationMatrix(rotationAngle);
+               /*
                 System.out.println(Arrays.deepToString(generateRotationMatrix(0)));
                 System.out.println(Arrays.deepToString(generateRotationMatrix(Math.PI / 2.0)));
+                */
+
+                // Vector vector0 = Vector.vectorMatrixTransformation(generateRotationMatrix(Math.PI / 2.0), new Vector(1, 0));
+                // System.out.println(vector0);
 
             }
 
