@@ -18,6 +18,9 @@ class Model {
     double totalRadius;
 
     boolean ballsIsFrozen = false;
+    boolean ballHasCollided = false;
+
+    double collisionTimer = 0;
 
     Model(double width, double height) {
         areaWidth = width;
@@ -25,8 +28,8 @@ class Model {
 
         // Initialize the model with a few balls
         balls = new Ball[2];
-        balls[0] = new Ball(width / 3, height * 0.5, 1.0, 0.25, 0.2, 1);
-        balls[1] = new Ball(2 * width / 3, height * 0.5, -1.0, -0.5, 0.3, 1);
+        balls[0] = new Ball(width / 3, height * 0.2, 10.0, 2.0, 0.2, 1);
+        balls[1] = new Ball(2 * width / 3, height * 0.8, -10.0, 0.5, 0.2, 1);
 
         totalRadius = balls[0].radius + balls[1].radius;
     }
@@ -34,13 +37,23 @@ class Model {
 
     void step(double deltaT) {
         // If mass is not assigned here it equals to 0
+
         balls[0].mass = 1;
         balls[1].mass = 1;
+        collisionTimer += deltaT;
+
         for (Ball b : balls) {
             // detect collision with the border
-            if (circlesIsIntersecting() && !ballsIsFrozen) {
+            if (circlesIsIntersecting() && collisionTimer > 0.2) {
+                balls[0].position.x = balls[0].oldPosition.x;
+                balls[0].position.y = balls[0].oldPosition.y;
+
+                balls[1].position.x = balls[1].oldPosition.x;
+                balls[1].position.y = balls[1].oldPosition.y;
+
+
                 System.out.println("Intersection occurred!");
-                ballsIsFrozen = true;
+                collisionTimer = 0;
                 // Calculate angle in radians between the x-axis and the line between the balls centres (l)
                 double slopeBetweenBalls = Vector.slopeBetweenTwoVectors(balls[0].position, balls[1].position);
                 double slopeAxisX = 0;
@@ -77,8 +90,6 @@ class Model {
                 System.out.println("Ball0 x-velocity after collision: " + newVelocityX0);
                 System.out.println("Ball1 x-velocity after collision: " + newVelocityX1);
 
-
-
                 double[][] m1 = generateRotationMatrixClockwise(rotationAngle);
                 Vector ballFinalVelocity0 = Vector.vectorMatrixTransformation(m1, new Vector(newVelocityX0, ballProjectedVelocity0.y));
                 Vector ballFinalVelocity1 = Vector.vectorMatrixTransformation(m1, new Vector(newVelocityX1, ballProjectedVelocity1.y));
@@ -103,12 +114,14 @@ class Model {
                 moveBalls(deltaT, b);
             }
         }
-
-        // Handle collisions in between circles
     }
 
     private void moveBalls(double deltaT, Ball b) {
         // compute new position according to the speed of the ball
+        b.oldPosition.x = b.position.x;
+        b.oldPosition.y = b.position.y;
+
+
         b.position.x += deltaT * b.velocity.x;
         b.position.y += deltaT * b.velocity.y;
     }
@@ -153,6 +166,7 @@ class Model {
      */
     class Ball {
         Vector position;
+        Vector oldPosition = new Vector(0, 0);
         Vector velocity;
         double radius;
         double mass;

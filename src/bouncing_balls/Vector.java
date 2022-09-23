@@ -12,13 +12,16 @@ public class Vector {
     }
 
     public static double slopeBetweenTwoVectors(Vector v1, Vector v2) {
-        return (v1.x- v2.x) / (v1.y - v2.y);
+        if (v1.x - v2.x == 0) {
+            return Math.PI / 2;
+        } else
+            return (v1.y - v2.y) / (v1.x - v2.x);
     }
 
     public static Vector vectorMatrixTransformation(double[][] transformationMatrix, Vector v) {
         double x = v.x * transformationMatrix[0][0] + v.x * transformationMatrix[0][1];
         double y = v.y * transformationMatrix[1][0] + v.y * transformationMatrix[1][1];
-        return new Vector(x,y);
+        return new Vector(x, y);
     }
 
     public static Vector scaleVector(Vector v, double s) {
